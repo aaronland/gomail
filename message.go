@@ -311,9 +311,9 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 	return append(list, f)
 }
 
-func (m *Message) appendReader(list []*file, r io.ReadCloser, settings []FileSetting) []*file {
+func (m *Message) appendReader(list []*file, filename string, r io.ReadCloser, settings []FileSetting) []*file {
 	f := &file{
-		Name:   "FIX ME",
+		Name:   filepath.Base(filename),
 		Header: make(map[string][]string),
 		CopyFunc: func(w io.Writer) error {
 			if _, err := io.Copy(w, r); err != nil {
@@ -345,6 +345,6 @@ func (m *Message) Embed(filename string, settings ...FileSetting) {
 	m.embedded = m.appendFile(m.embedded, filename, settings)
 }
 
-func (m *Message) EmbedReader(r io.ReadCloser, settings ...FileSetting) {
-	m.embedded = m.appendReader(m.embedded, r, settings)
+func (m *Message) EmbedReader(filename string, r io.ReadCloser, settings ...FileSetting) {
+	m.embedded = m.appendReader(m.embedded, filename, r, settings)
 }
