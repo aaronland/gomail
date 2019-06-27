@@ -5,8 +5,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
+
+type ReadSeekCloser interface {
+    io.Reader
+    io.Seeker
+    io.Closer
+}
 
 // Message represents an email.
 type Message struct {
@@ -18,6 +25,7 @@ type Message struct {
 	encoding    Encoding
 	hEncoder    mimeEncoder
 	buf         bytes.Buffer
+	mu 	    *sync.RWMutex
 }
 
 type header map[string][]string
@@ -44,6 +52,9 @@ func NewMessage(settings ...MessageSetting) *Message {
 	} else {
 		m.hEncoder = qEncoding
 	}
+
+	mu := new(sync.RWMutex)
+	m.mu = mu
 
 	return m
 }
@@ -311,16 +322,24 @@ func (m *Message) appendFile(list []*file, name string, settings []FileSetting) 
 	return append(list, f)
 }
 
-func (m *Message) appendReader(list []*file, filename string, r io.ReadCloser, settings []FileSetting) []*file {
+func (m *Message) appendReader(list []*file, filename string, r ReadSeekCloser, settings []FileSetting) []*file {
 	f := &file{
 		Name:   filepath.Base(filename),
 		Header: make(map[string][]string),
 		CopyFunc: func(w io.Writer) error {
+
+			m.mu.Lock()
+			defer m.mu.Unlock()
+
 			if _, err := io.Copy(w, r); err != nil {
 				r.Close()
 				return err
 			}
-			return r.Close()
+
+			// return r.Close()
+
+			_, err := r.Seek(0,0)
+			return err
 		},
 	}
 
@@ -345,6 +364,6 @@ func (m *Message) Embed(filename string, settings ...FileSetting) {
 	m.embedded = m.appendFile(m.embedded, filename, settings)
 }
 
-func (m *Message) EmbedReader(filename string, r io.ReadCloser, settings ...FileSetting) {
+func (m *Message) EmbedReader(filename string, r ReadSeekCloser, settings ...FileSetting) {
 	m.embedded = m.appendReader(m.embedded, filename, r, settings)
 }
