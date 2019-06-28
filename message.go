@@ -373,6 +373,35 @@ func (m *Message) appendReadSeekCloser(list []*file, filename string, r ReadSeek
 	return append(list, f)
 }
 
+func (m *Message) appendBuffer(list []*file, filename string, buf bytes.Buffer, settings []FileSetting) []*file {
+	f := &file{
+		Name:   filepath.Base(filename),
+		Header: make(map[string][]string),
+		CopyFunc: func(w io.Writer) error {
+
+			br := bytes.NewReader(buf.Bytes())
+			r := ioutil.NopCloser(br)
+
+			if _, err := io.Copy(w, r); err != nil {
+				r.Close()
+				return err
+			}
+
+			return r.Close()
+		},
+	}
+
+	for _, s := range settings {
+		s(f)
+	}
+
+	if list == nil {
+		return []*file{f}
+	}
+
+	return append(list, f)
+}
+
 // Attach attaches the files to the email.
 func (m *Message) Attach(filename string, settings ...FileSetting) {
 	m.attachments = m.appendFile(m.attachments, filename, settings)
@@ -389,10 +418,7 @@ func (m *Message) EmbedReader(filename string, r io.ReadCloser, settings ...File
 
 func (m *Message) EmbedBuffer(filename string, buf bytes.Buffer, settings ...FileSetting) {
 
-	br := bytes.NewReader(buf.Bytes())
-	r := ioutil.NopCloser(br)
-
-	m.embedded = m.appendReader(m.embedded, filename, r, settings)
+	m.embedded = m.appendBuffer(m.embedded, filename, buf, settings)
 }
 
 func (m *Message) EmbedReadSeekCloser(filename string, r ReadSeekCloser, settings ...FileSetting) {
