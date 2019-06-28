@@ -10,12 +10,6 @@ import (
 	"time"
 )
 
-type ReadSeekCloser interface {
-    io.Reader
-    io.Seeker
-    io.Closer
-}
-
 // Message represents an email.
 type Message struct {
 	header      header
@@ -26,7 +20,7 @@ type Message struct {
 	encoding    Encoding
 	hEncoder    mimeEncoder
 	buf         bytes.Buffer
-	mu 	    *sync.RWMutex
+	mu          *sync.RWMutex
 }
 
 type header map[string][]string
@@ -363,7 +357,7 @@ func (m *Message) appendReadSeekCloser(list []*file, filename string, r ReadSeek
 				return err
 			}
 
-			_, err := r.Seek(0,0)
+			_, err := r.Seek(0, 0)
 			return err
 		},
 	}
@@ -395,7 +389,7 @@ func (m *Message) EmbedReader(filename string, r io.ReadCloser, settings ...File
 
 func (m *Message) EmbedBuffer(filename string, buf bytes.Buffer, settings ...FileSetting) {
 
-     	br := bytes.NewReader(buf.Bytes())
+	br := bytes.NewReader(buf.Bytes())
 	r := ioutil.NopCloser(br)
 
 	m.embedded = m.appendReader(m.embedded, filename, r, settings)
