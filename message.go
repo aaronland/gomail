@@ -417,10 +417,9 @@ func (m *Message) EmbedReader(filename string, r io.ReadCloser, settings ...File
 }
 
 func (m *Message) EmbedBuffer(filename string, buf bytes.Buffer, settings ...FileSetting) {
-
 	m.embedded = m.appendBuffer(m.embedded, filename, buf, settings)
 }
 
 func (m *Message) EmbedReadSeekCloser(filename string, r ReadSeekCloser, settings ...FileSetting) {
-	m.embedded = m.appendReader(m.embedded, filename, r, settings)
+	m.embedded = m.appendReadSeekCloser(m.embedded, filename, r, settings)
 }
