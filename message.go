@@ -373,7 +373,7 @@ func (m *Message) appendReadSeekCloser(list []*file, filename string, r ReadSeek
 	return append(list, f)
 }
 
-func (m *Message) appendBuffer(list []*file, filename string, buf bytes.Buffer, settings []FileSetting) []*file {
+func (m *Message) appendBuffer(list []*file, filename string, buf *bytes.Buffer, settings []FileSetting) []*file {
 	f := &file{
 		Name:   filepath.Base(filename),
 		Header: make(map[string][]string),
@@ -416,10 +416,10 @@ func (m *Message) EmbedReader(filename string, r io.ReadCloser, settings ...File
 	m.embedded = m.appendReader(m.embedded, filename, r, settings)
 }
 
-func (m *Message) EmbedBuffer(filename string, buf bytes.Buffer, settings ...FileSetting) {
-	m.embedded = m.appendBuffer(m.embedded, filename, buf, settings)
-}
-
 func (m *Message) EmbedReadSeekCloser(filename string, r ReadSeekCloser, settings ...FileSetting) {
 	m.embedded = m.appendReadSeekCloser(m.embedded, filename, r, settings)
+}
+
+func (m *Message) EmbedBuffer(filename string, buf *bytes.Buffer, settings ...FileSetting) {
+	m.embedded = m.appendBuffer(m.embedded, filename, buf, settings)
 }
