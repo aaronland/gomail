@@ -6,8 +6,7 @@ import (
 	"io"
 	"log"
 	"time"
-
-	"github.com/aaronland/gomail"
+	"github.com/aaronland/gomail/v2"
 )
 
 func Example() {
